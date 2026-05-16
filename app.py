@@ -1,21 +1,22 @@
 """
 app.py — Streamlit Dashboard (main page)
 
-Shows account summary, open positions, and open orders.
-Run with: uv run streamlit run app.py
+Account overview: equity, positions, P&L, open orders.
+Run: uv run streamlit run app.py
 """
 
-import sys
-import time
+import sys, time
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 import streamlit as st
 import pandas as pd
+import plotly.graph_objects as go
 
 from core.account import get_account, get_positions
 from core.trade import get_orders, cancel_all_orders, close_all_positions
 from core.config import trading_client
+from pages._shared import inject_css, metric_card, section_header, market_pill, alert, COLORS
 
 st.set_page_config(
     page_title="Alpaca Trading Bot",
@@ -23,114 +24,147 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+inject_css()
 
-# ── Cached data fetchers ───────────────────────────────────────────────────────
-
-@st.cache_data(ttl=15)
-def _account():
-    return get_account()
+# ── Cached fetchers ────────────────────────────────────────────────────────────
 
 @st.cache_data(ttl=15)
-def _positions():
-    return get_positions()
+def _account():   return get_account()
+
+@st.cache_data(ttl=15)
+def _positions(): return get_positions()
 
 @st.cache_data(ttl=10)
-def _orders():
-    return get_orders("open")
+def _orders():    return get_orders("open")
 
 @st.cache_data(ttl=30)
-def _market_open():
-    try:
-        return trading_client.get_clock().is_open
-    except Exception:
-        return None
+def _clock():
+    try:    return trading_client.get_clock()
+    except: return None
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.title("📈 Alpaca Trading Bot")
-    st.caption("Paper Trading — No real money at risk")
-    st.divider()
+    st.markdown("## 📈 Alpaca Trading Bot")
+    st.caption("Paper Trading · No real money at risk")
+    st.markdown('<hr class="styled-divider">', unsafe_allow_html=True)
 
-    is_open = _market_open()
-    if is_open is True:
-        st.success("Market: OPEN")
-    elif is_open is False:
-        st.error("Market: CLOSED")
-    else:
-        st.warning("Market: Unknown")
+    clock = _clock()
+    is_open = clock.is_open if clock else None
+    if is_open is True:    market_pill(True)
+    elif is_open is False: market_pill(False)
+    else:                  st.warning("Market status unknown")
 
-    st.caption(f"Last refreshed: {time.strftime('%H:%M:%S')}")
-    if st.button("Refresh Now", use_container_width=True):
+    st.markdown(f'<p style="color:#8892A4;font-size:0.78rem;margin-top:8px">Refreshed {time.strftime("%H:%M:%S")}</p>', unsafe_allow_html=True)
+    if st.button("🔄  Refresh", use_container_width=True):
         st.cache_data.clear()
         st.rerun()
 
-    auto_refresh = st.toggle("Auto-refresh every 30s", value=False)
+    auto_refresh = st.toggle("Auto-refresh (30s)", value=False)
+    st.markdown('<hr class="styled-divider">', unsafe_allow_html=True)
+    st.caption("Navigate using the sidebar pages above.")
 
-# ── Main content ───────────────────────────────────────────────────────────────
+# ── Header ─────────────────────────────────────────────────────────────────────
 
-st.title("Dashboard")
+st.markdown("# Dashboard")
 
 try:
-    acct = _account()
-    equity     = float(acct.equity)
-    cash       = float(acct.cash)
-    bp         = float(acct.buying_power)
-    last_eq    = float(acct.last_equity)
-    day_pnl    = equity - last_eq
+    acct    = _account()
+    equity  = float(acct.equity)
+    cash    = float(acct.cash)
+    bp      = float(acct.buying_power)
+    last_eq = float(acct.last_equity)
+    pnl     = equity - last_eq
+    pnl_pct = pnl / last_eq * 100 if last_eq else 0
 
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Equity",       f"${equity:,.2f}")
-    col2.metric("Cash",         f"${cash:,.2f}")
-    col3.metric("Buying Power", f"${bp:,.2f}")
-    col4.metric("Day P&L",      f"${day_pnl:+,.2f}",
-                delta=f"{day_pnl/last_eq*100:+.2f}%" if last_eq else None)
+    # ── Metric cards ───────────────────────────────────────────────────────────
+    c1, c2, c3, c4 = st.columns(4)
+    with c1: metric_card("Equity",       f"${equity:,.2f}", color="blue")
+    with c2: metric_card("Cash",         f"${cash:,.2f}",   color="teal")
+    with c3: metric_card("Buying Power", f"${bp:,.2f}",     color="purple")
+    with c4:
+        color = "green" if pnl >= 0 else "red"
+        metric_card("Day P&L", f"${pnl:+,.2f}",
+                    delta=f"{pnl_pct:+.2f}%", color=color)
 
 except Exception as e:
-    st.error(f"Could not load account: {e}")
+    alert(f"Could not load account data: {e}", "danger")
     st.stop()
 
-st.divider()
+st.markdown('<hr class="styled-divider">', unsafe_allow_html=True)
 
 # ── Positions ──────────────────────────────────────────────────────────────────
 
-st.subheader("Open Positions")
+section_header("Open Positions")
 
 try:
     positions = _positions()
     if positions:
         rows = []
         for p in positions:
-            pnl = float(p.unrealized_pl)
+            pnl_pos = float(p.unrealized_pl)
+            pnl_pct_pos = float(p.unrealized_plpc) * 100 if hasattr(p, "unrealized_plpc") else 0
             rows.append({
-                "Symbol":       p.symbol,
-                "Qty":          float(p.qty),
-                "Avg Entry":    float(p.avg_entry_price),
-                "Market Value": float(p.market_value),
-                "Unrealised P&L": pnl,
-                "Side":         str(p.side).replace("PositionSide.", ""),
+                "Symbol":     p.symbol,
+                "Qty":        float(p.qty),
+                "Avg Entry":  float(p.avg_entry_price),
+                "Mkt Value":  float(p.market_value),
+                "P&L ($)":    pnl_pos,
+                "P&L (%)":    pnl_pct_pos,
+                "Side":       str(p.side).replace("PositionSide.", "").upper(),
             })
-        df = pd.DataFrame(rows)
-        st.dataframe(
-            df,
-            use_container_width=True,
-            column_config={
-                "Avg Entry":      st.column_config.NumberColumn(format="$%.2f"),
-                "Market Value":   st.column_config.NumberColumn(format="$%.2f"),
-                "Unrealised P&L": st.column_config.NumberColumn(format="$%.2f"),
-            },
-            hide_index=True,
-        )
-    else:
-        st.info("No open positions.")
-except Exception as e:
-    st.error(f"Could not load positions: {e}")
+        df_pos = pd.DataFrame(rows)
 
-st.divider()
+        # Positions table + donut chart side by side
+        col_tbl, col_chart = st.columns([3, 2])
+
+        with col_tbl:
+            st.dataframe(
+                df_pos,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Avg Entry": st.column_config.NumberColumn(format="$%.2f"),
+                    "Mkt Value": st.column_config.NumberColumn(format="$%.2f"),
+                    "P&L ($)":   st.column_config.NumberColumn(format="$%.2f"),
+                    "P&L (%)":   st.column_config.NumberColumn(format="%.2f%%"),
+                },
+            )
+
+        with col_chart:
+            labels = [r["Symbol"] for r in rows]
+            values = [r["Mkt Value"] for r in rows]
+            fig = go.Figure(go.Pie(
+                labels=labels, values=values,
+                hole=0.6,
+                marker=dict(colors=[COLORS["blue"], COLORS["teal"], COLORS["purple"],
+                                    COLORS["green"], COLORS["gold"], COLORS["red"]]),
+                textinfo="label+percent",
+                textfont_size=11,
+            ))
+            fig.update_layout(
+                showlegend=False,
+                margin=dict(t=10, b=10, l=10, r=10),
+                paper_bgcolor="rgba(0,0,0,0)",
+                plot_bgcolor="rgba(0,0,0,0)",
+                font_color="#E8ECF0",
+                height=240,
+                annotations=[dict(text="Portfolio", x=0.5, y=0.5,
+                                  font_size=13, showarrow=False, font_color="#8892A4")],
+            )
+            st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+    else:
+        alert("No open positions. Head to the Trade or Scanner page to get started.", "info")
+
+except Exception as e:
+    alert(f"Could not load positions: {e}", "danger")
+
+st.markdown('<hr class="styled-divider">', unsafe_allow_html=True)
 
 # ── Open Orders ────────────────────────────────────────────────────────────────
 
-st.subheader("Open Orders")
+section_header("Open Orders")
 
 try:
     orders = _orders()
@@ -139,53 +173,51 @@ try:
         for o in orders:
             rows.append({
                 "Symbol":    o.symbol,
-                "Side":      str(o.side).replace("OrderSide.", ""),
+                "Side":      str(o.side).replace("OrderSide.", "").upper(),
                 "Qty":       float(o.qty or 0),
-                "Type":      str(o.type).replace("OrderType.", ""),
-                "Status":    str(o.status).replace("OrderStatus.", ""),
-                "Submitted": str(o.submitted_at)[:19] if o.submitted_at else "",
+                "Type":      str(o.type).replace("OrderType.", "").upper(),
+                "Status":    str(o.status).replace("OrderStatus.", "").upper(),
+                "Submitted": str(o.submitted_at)[:16].replace("T", " ") if o.submitted_at else "—",
             })
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
 
-        st.divider()
-        col1, col2 = st.columns([1, 4])
-        if col1.button("Cancel All Orders", type="secondary"):
+        col_btn, _ = st.columns([1, 3])
+        if col_btn.button("Cancel All Orders", type="secondary", use_container_width=True):
             st.session_state["cancel_confirm"] = True
 
         if st.session_state.get("cancel_confirm"):
-            st.warning("Cancel all open orders?")
-            c1, c2 = st.columns([1, 1])
-            if c1.button("Yes, cancel all", type="primary"):
+            alert("This will cancel ALL open orders immediately.", "warn")
+            c1, c2 = st.columns([1, 4])
+            if c1.button("Confirm Cancel", type="primary"):
                 cancel_all_orders()
                 st.cache_data.clear()
                 st.session_state.pop("cancel_confirm", None)
-                st.success("All orders cancelled.")
                 st.rerun()
-            if c2.button("Never mind"):
+            if c2.button("Never mind##cancel"):
                 st.session_state.pop("cancel_confirm", None)
                 st.rerun()
     else:
-        st.info("No open orders.")
-except Exception as e:
-    st.error(f"Could not load orders: {e}")
+        alert("No open orders.", "info")
 
-st.divider()
+except Exception as e:
+    alert(f"Could not load orders: {e}", "danger")
+
+st.markdown('<hr class="styled-divider">', unsafe_allow_html=True)
 
 # ── Danger zone ────────────────────────────────────────────────────────────────
 
-with st.expander("Danger Zone"):
-    st.warning("Closing all positions will sell everything at market price immediately.")
-    if st.button("Close All Positions", type="primary"):
+with st.expander("⚠️  Danger Zone — Close All Positions"):
+    alert("Closes every open position at market price and cancels all orders. Cannot be undone.", "danger")
+    if st.button("Close Everything", type="primary"):
         st.session_state["close_confirm"] = True
 
     if st.session_state.get("close_confirm"):
-        st.error("Are you absolutely sure? This cannot be undone.")
-        c1, c2 = st.columns([1, 1])
-        if c1.button("Yes, close everything"):
+        st.error("Last chance — are you absolutely sure?")
+        c1, c2 = st.columns([1, 4])
+        if c1.button("Yes, close all"):
             close_all_positions()
             st.cache_data.clear()
             st.session_state.pop("close_confirm", None)
-            st.success("All positions closed.")
             st.rerun()
         if c2.button("No, go back"):
             st.session_state.pop("close_confirm", None)
