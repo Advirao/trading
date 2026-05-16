@@ -20,6 +20,30 @@ The Python scripts handle **execution only** (placing orders, fetching prices, s
 
 ---
 
+## Web Dashboard (for non-developers)
+
+No terminal needed. Start the point-and-click dashboard:
+
+```bash
+uv run streamlit run app.py
+```
+
+Then open **http://localhost:8501** in your browser.
+
+| Page | What it does |
+|---|---|
+| Dashboard | Account balance, positions, day P&L, open orders |
+| Scanner | Run the multi-signal scan, approve trades with checkboxes |
+| Trade | Manual buy/sell with live price chart, cancel orders |
+| Copy Trading | Browse congressional disclosures, mirror a trade |
+| Wheel | Set up cash-secured puts and covered calls |
+| History | Full trade history from the database |
+
+> The dashboard complements Claude Code — it handles viewing and one-off trades.
+> Continuous monitoring loops (`/level2`, `/auto`) still run through Claude Code.
+
+---
+
 ## Quick Start
 
 ### 1. Prerequisites

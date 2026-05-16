@@ -214,6 +214,22 @@ def close_auto_trade(trade_id: int, status: str = "closed"):
         )
 
 
+def get_all_auto_trades(limit: int = 100) -> list:
+    """Return all auto trades (any status), newest first, up to limit rows."""
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM auto_trades ORDER BY placed_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+
+
+def get_all_wheel_legs(limit: int = 100) -> list:
+    """Return all wheel legs (any status), newest first, up to limit rows."""
+    with get_conn() as conn:
+        return conn.execute(
+            "SELECT * FROM wheel_positions ORDER BY opened_at DESC LIMIT ?", (limit,)
+        ).fetchall()
+
+
 # ── Auto-initialize on import ─────────────────────────────────────────────────
 # Every script that imports db.py gets a valid schema automatically.
 init_db()
