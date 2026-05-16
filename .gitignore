@@ -1,0 +1,23 @@
+# Credentials — never commit
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# Runtime state files (created when bots run)
+*.db
+trailing_stop_state.json
+bot_config.json
+auto_state.json
+*.log
+logs/
+
+# Sensitive images / screenshots with credentials
+api.png
+*.png
