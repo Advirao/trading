@@ -226,13 +226,14 @@ def metric_card(label: str, value: str, delta: str = None, color: str = "blue"):
     """Render a styled metric card with optional delta line."""
     delta_color = COLORS["green"] if delta and "+" in delta else COLORS["red"] if delta else COLORS["muted"]
     delta_html  = f'<div class="delta" style="color:{delta_color}">{delta}</div>' if delta else ""
-    st.markdown(f"""
-    <div class="m-card {color}">
-        <div class="label">{label}</div>
-        <div class="value" style="color:{COLORS[color]}">{value}</div>
-        {delta_html}
-    </div>
-    """, unsafe_allow_html=True)
+    html = (
+        f'<div class="m-card {color}">'
+        f'<div class="label">{label}</div>'
+        f'<div class="value" style="color:{COLORS[color]}">{value}</div>'
+        f'{delta_html}'
+        f'</div>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def badge(text: str, color: str = "blue") -> str:
@@ -249,11 +250,10 @@ def market_pill(is_open: bool):
     """Render the animated market open/closed pill."""
     cls  = "open" if is_open else "closed"
     text = "MARKET OPEN" if is_open else "MARKET CLOSED"
-    st.markdown(f"""
-    <div class="market-pill {cls}">
-        <div class="market-dot {cls}"></div>{text}
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="market-pill {cls}"><div class="market-dot {cls}"></div>{text}</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def alert(text: str, kind: str = "info"):

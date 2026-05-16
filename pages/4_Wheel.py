@@ -79,24 +79,24 @@ try:
             stage_badge = badge(stage, stage_color)
             status_badge = badge(status, "green" if status == "open" else "gray")
 
-            st.markdown(f"""
-            <div class="opt-card">
-                <div style="display:flex;align-items:center;justify-content:space-between">
-                    <span style="font-size:1.1rem;font-weight:700">{symbol}</span>
-                    <span style="font-size:1.1rem;font-weight:700;color:{COLORS['green']}">${premium:.2f}</span>
-                </div>
-                <div style="margin-top:4px">{stage_badge} {status_badge}</div>
-                <div class="dte-track" style="margin-top:10px">
-                    <div class="dte-fill" style="width:{dte_w}%;background:{dte_hex}"></div>
-                </div>
-                <div class="info-row" style="margin-top:10px">
-                    <div class="info-item"><span class="key">Strike</span><span class="val">${strike:.2f}</span></div>
-                    <div class="info-item"><span class="key">Expiry</span><span class="val">{expiry_str}</span></div>
-                    <div class="info-item"><span class="key">DTE</span><span class="val" style="color:{dte_hex}">{dte_display}</span></div>
-                    <div class="info-item"><span class="key">Opened</span><span class="val">{opened_at}</span></div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            leg_html = (
+                f'<div class="opt-card">'
+                f'<div style="display:flex;align-items:center;justify-content:space-between">'
+                f'<span style="font-size:1.1rem;font-weight:700">{symbol}</span>'
+                f'<span style="font-size:1.1rem;font-weight:700;color:{COLORS["green"]}">${premium:.2f}</span>'
+                f'</div>'
+                f'<div style="margin-top:4px">{stage_badge} {status_badge}</div>'
+                f'<div class="dte-track" style="margin-top:10px">'
+                f'<div class="dte-fill" style="width:{dte_w}%;background:{dte_hex}"></div></div>'
+                f'<div class="info-row" style="margin-top:10px">'
+                f'<div class="info-item"><span class="key">Strike</span><span class="val">${strike:.2f}</span></div>'
+                f'<div class="info-item"><span class="key">Expiry</span><span class="val">{expiry_str}</span></div>'
+                f'<div class="info-item"><span class="key">DTE</span><span class="val" style="color:{dte_hex}">{dte_display}</span></div>'
+                f'<div class="info-item"><span class="key">Opened</span><span class="val">{opened_at}</span></div>'
+                f'</div>'
+                f'</div>'
+            )
+            st.markdown(leg_html, unsafe_allow_html=True)
 
         st.markdown(
             f'<p style="font-size:0.78rem;color:#8892A4;margin-top:8px">'

@@ -145,28 +145,27 @@ if stock_candidates:
         vr_display  = f"{vr:.1f}x"  if vr  is not None else "n/a"
         pe_display  = f"{f['pe_ratio']:.1f}" if f.get("pe_ratio") else "—"
 
-        score_w  = min(score, 100)
-        st.markdown(f"""
-        <div class="cand-card" style="{opacity}">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-                <span class="symbol">#{i} {sym}</span>
-                <span style="font-size:0.8rem;color:#8892A4">${price:.2f}</span>
-            </div>
-            <div class="score-row">
-                <div class="score-track">
-                    <div class="score-fill" style="width:{score_w}%;background:{score_hex}"></div>
-                </div>
-                <span class="score-num" style="color:{score_hex}">{score}</span>
-                {copy_badge}{skip_badge}
-            </div>
-            <div class="info-row">
-                <div class="info-item"><span class="key">RSI(14)</span><span class="val">{rsi_display}</span></div>
-                <div class="info-item"><span class="key">Mom 5d</span><span class="val">{mom_display}</span></div>
-                <div class="info-item"><span class="key">Vol Ratio</span><span class="val">{vr_display}</span></div>
-                <div class="info-item"><span class="key">P/E</span><span class="val">{pe_display}</span></div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        score_w = min(score, 100)
+        html = (
+            f'<div class="cand-card" style="{opacity}">'
+            f'<div style="display:flex;align-items:center;justify-content:space-between">'
+            f'<span class="symbol">#{i} {sym}</span>'
+            f'<span style="font-size:0.8rem;color:#8892A4">${price:.2f}</span>'
+            f'</div>'
+            f'<div class="score-row">'
+            f'<div class="score-track"><div class="score-fill" style="width:{score_w}%;background:{score_hex}"></div></div>'
+            f'<span class="score-num" style="color:{score_hex}">{score}</span>'
+            f'{copy_badge}{skip_badge}'
+            f'</div>'
+            f'<div class="info-row">'
+            f'<div class="info-item"><span class="key">RSI(14)</span><span class="val">{rsi_display}</span></div>'
+            f'<div class="info-item"><span class="key">Mom 5d</span><span class="val">{mom_display}</span></div>'
+            f'<div class="info-item"><span class="key">Vol Ratio</span><span class="val">{vr_display}</span></div>'
+            f'<div class="info-item"><span class="key">P/E</span><span class="val">{pe_display}</span></div>'
+            f'</div>'
+            f'</div>'
+        )
+        st.markdown(html, unsafe_allow_html=True)
 
 else:
     alert("No stock candidates found.", "info")
@@ -197,28 +196,30 @@ if options_candidates:
         dte_color_hex = COLORS["red"] if dte <= 7 else COLORS["gold"] if dte <= 14 else COLORS["green"]
         etf_badge = badge("LEVERAGED ETF", "gold") if is_etf else ""
 
-        st.markdown(f"""
-        <div class="opt-card">
-            <div style="display:flex;align-items:center;justify-content:space-between">
-                <span style="font-size:1.1rem;font-weight:700">{sym}</span>
-                <span style="font-size:1.1rem;font-weight:700;color:{COLORS['green']}">${premium:,.0f} <span style="font-size:0.75rem;color:#8892A4">/ contract</span></span>
-            </div>
-            <div class="contract-sym">{c.get('contract_symbol','')}</div>
-            <div class="dte-track">
-                <div class="dte-fill" style="width:{dte_w}%;background:{dte_color_hex}"></div>
-            </div>
-            <div class="info-row" style="margin-top:10px">
-                <div class="info-item"><span class="key">Strike</span><span class="val">${strike:.2f}</span></div>
-                <div class="info-item"><span class="key">Expiry</span><span class="val">{expiry}</span></div>
-                <div class="info-item"><span class="key">DTE</span><span class="val" style="color:{dte_color_hex}">{dte}d</span></div>
-                <div class="info-item"><span class="key">Bid</span><span class="val">${bid:.2f}</span></div>
-                <div class="info-item"><span class="key">Open Interest</span><span class="val">{oi:,}</span></div>
-                <div class="info-item"><span class="key">Spread</span><span class="val">{spread:.1%}</span></div>
-                <div class="info-item"><span class="key">OTM</span><span class="val">{otm:.1%}</span></div>
-                <div class="info-item"><span class="key">Type</span><span class="val">{etf_badge if is_etf else badge("STOCK","blue")}</span></div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        type_badge = etf_badge if is_etf else badge("STOCK", "blue")
+        contract_sym = c.get("contract_symbol", "")
+        opt_html = (
+            f'<div class="opt-card">'
+            f'<div style="display:flex;align-items:center;justify-content:space-between">'
+            f'<span style="font-size:1.1rem;font-weight:700">{sym}</span>'
+            f'<span style="font-size:1.1rem;font-weight:700;color:{COLORS["green"]}">'
+            f'${premium:,.0f} <span style="font-size:0.75rem;color:#8892A4">/ contract</span></span>'
+            f'</div>'
+            f'<div class="contract-sym">{contract_sym}</div>'
+            f'<div class="dte-track"><div class="dte-fill" style="width:{dte_w}%;background:{dte_color_hex}"></div></div>'
+            f'<div class="info-row" style="margin-top:10px">'
+            f'<div class="info-item"><span class="key">Strike</span><span class="val">${strike:.2f}</span></div>'
+            f'<div class="info-item"><span class="key">Expiry</span><span class="val">{expiry}</span></div>'
+            f'<div class="info-item"><span class="key">DTE</span><span class="val" style="color:{dte_color_hex}">{dte}d</span></div>'
+            f'<div class="info-item"><span class="key">Bid</span><span class="val">${bid:.2f}</span></div>'
+            f'<div class="info-item"><span class="key">OI</span><span class="val">{oi:,}</span></div>'
+            f'<div class="info-item"><span class="key">Spread</span><span class="val">{spread:.1%}</span></div>'
+            f'<div class="info-item"><span class="key">OTM</span><span class="val">{otm:.1%}</span></div>'
+            f'<div class="info-item"><span class="key">Type</span><span class="val">{type_badge}</span></div>'
+            f'</div>'
+            f'</div>'
+        )
+        st.markdown(opt_html, unsafe_allow_html=True)
 else:
     alert("No qualified options candidates (OI ≥ 500, spread ≤ 5%, DTE 25–50).", "info")
 
