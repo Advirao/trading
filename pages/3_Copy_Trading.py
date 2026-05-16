@@ -16,7 +16,7 @@ from collections import Counter
 
 from strategies.copy_trading import fetch_all_trades, classify_trade
 from core.trade import buy_market, sell_market
-from pages._shared import inject_css, section_header, metric_card, alert, badge, COLORS
+from _shared import inject_css, section_header, metric_card, alert, badge, COLORS
 
 st.set_page_config(page_title="Copy Trading", page_icon="🏛️", layout="wide")
 inject_css()

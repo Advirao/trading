@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from core.market_data import get_quote, get_bars
 from core.trade import buy_market, sell_market, get_orders, cancel_all_orders
-from pages._shared import inject_css, section_header, metric_card, alert, badge, COLORS
+from _shared import inject_css, section_header, metric_card, alert, badge, COLORS
 
 st.set_page_config(page_title="Trade", page_icon="💹", layout="wide")
 inject_css()

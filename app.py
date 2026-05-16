@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 from core.account import get_account, get_positions
 from core.trade import get_orders, cancel_all_orders, close_all_positions
 from core.config import trading_client
-from pages._shared import inject_css, metric_card, section_header, market_pill, alert, COLORS
+from _shared import inject_css, metric_card, section_header, market_pill, alert, COLORS
 
 st.set_page_config(
     page_title="Alpaca Trading Bot",

@@ -13,7 +13,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from db import get_all_auto_trades, get_all_wheel_legs
-from pages._shared import inject_css, section_header, metric_card, alert, badge, COLORS
+from _shared import inject_css, section_header, metric_card, alert, badge, COLORS
 
 st.set_page_config(page_title="History", page_icon="📋", layout="wide")
 inject_css()

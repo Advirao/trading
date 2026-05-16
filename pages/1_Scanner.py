@@ -22,7 +22,7 @@ from strategies.auto_scanner import (
 from core.trade import buy_market
 from strategies.wheel import sell_put
 from db import log_auto_trade
-from pages._shared import inject_css, section_header, metric_card, alert, badge, score_color, COLORS
+from _shared import inject_css, section_header, metric_card, alert, badge, score_color, COLORS
 
 st.set_page_config(page_title="Scanner", page_icon="🔍", layout="wide")
 inject_css()

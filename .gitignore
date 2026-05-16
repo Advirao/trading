@@ -21,3 +21,6 @@ logs/
 # Sensitive images / screenshots with credentials
 api.png
 *.png
+node_modules/
+test-results/
+tests/report/

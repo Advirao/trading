@@ -18,7 +18,7 @@ from strategies.wheel import (
     get_option_contracts, sell_put, sell_call,
 )
 from db import get_open_wheel_legs
-from pages._shared import inject_css, section_header, metric_card, alert, badge, dte_color, COLORS
+from _shared import inject_css, section_header, metric_card, alert, badge, dte_color, COLORS
 
 st.set_page_config(page_title="Wheel Strategy", page_icon="🎡", layout="wide")
 inject_css()

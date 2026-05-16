@@ -1,0 +1,27 @@
+{
+  "name": "alpaca-trading",
+  "version": "1.0.0",
+  "description": "An AI-powered automated stock trading system built on the [Alpaca](https://alpaca.markets) paper-trading API. Claude Code acts as the bot brain — it reasons, narrates every decision, and adapts mid-run. No separate AI API key required; it runs on your Claude subscription.",
+  "main": "playwright.config.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Advirao/trading.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Advirao/trading/issues"
+  },
+  "homepage": "https://github.com/Advirao/trading#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}
