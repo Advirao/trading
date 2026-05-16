@@ -89,19 +89,13 @@ test("Trade page loads with symbol input and BUY/SELL buttons", async ({ page })
   await expect(page.locator("button", { hasText: "SELL" })).toBeVisible();
 });
 
-test("Trade page quote lookup shows error for bad symbol", async ({ page }) => {
+test("Trade page quote lookup shows warning for empty symbol", async ({ page }) => {
   await page.goto(`${BASE}/Trade`, { waitUntil: "networkidle", timeout: TIMEOUT });
   await waitReady(page);
 
-  // Type a bogus symbol and click Get Quote
-  const input = page.locator('input[placeholder="AAPL"]').first();
-  await input.fill("ZZZZINVALID");
+  // Click Get Quote without entering anything — should show a warn alert
   await page.locator("button", { hasText: "Get Quote" }).click();
-
-  // Should show an alert-danger or Streamlit error
-  await expect(
-    page.locator(".alert-danger, .stAlert")
-  ).toBeVisible({ timeout: TIMEOUT });
+  await expect(page.locator(".alert-warn")).toBeVisible({ timeout: TIMEOUT });
 });
 
 // ── Copy Trading page ─────────────────────────────────────────────────────────

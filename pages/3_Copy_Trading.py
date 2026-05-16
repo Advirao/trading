@@ -158,9 +158,15 @@ st.markdown('<hr class="styled-divider">', unsafe_allow_html=True)
 section_header(f"Disclosures ({len(df):,} matching)")
 
 def _row_color(row):
-    if row["_action"] == "buy":
+    # Works whether or not _action column is present — falls back to Transaction text
+    action = row.get("_action", "")
+    if not action:
+        txn = str(row.get("Transaction", "")).lower()
+        action = "buy" if ("purchase" in txn or "buy" in txn) else (
+                 "sell" if ("sale" in txn or "sell" in txn) else "")
+    if action == "buy":
         return [f"background-color:{COLORS['green']}18"] * len(row)
-    elif row["_action"] == "sell":
+    if action == "sell":
         return [f"background-color:{COLORS['red']}18"] * len(row)
     return [""] * len(row)
 

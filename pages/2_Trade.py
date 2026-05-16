@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 
 from core.market_data import get_quote, get_bars
 from core.trade import buy_market, sell_market, get_orders, cancel_all_orders
-from _shared import inject_css, section_header, metric_card, alert, badge, COLORS
+from _shared import inject_css, section_header, metric_card, alert, COLORS
 
 st.set_page_config(page_title="Trade", page_icon="💹", layout="wide")
 inject_css()
@@ -31,9 +31,12 @@ st.markdown(
 section_header("Price Lookup")
 
 col1, col2 = st.columns([3, 1])
-symbol_input = col1.text_input("Symbol", placeholder="AAPL", key="lookup_symbol",
+symbol_input = col1.text_input("Symbol", placeholder="e.g. AAPL", key="lookup_symbol",
                                 label_visibility="collapsed").upper().strip()
 lookup_btn   = col2.button("Get Quote", use_container_width=True, type="primary")
+
+if lookup_btn and not symbol_input:
+    alert("Enter a ticker symbol first (e.g. AAPL).", "warn")
 
 if lookup_btn and symbol_input:
     with st.spinner(f"Fetching {symbol_input}…"):
@@ -126,7 +129,9 @@ col_buy, col_sell, _ = st.columns([1, 1, 3])
 buy_btn  = col_buy.button("BUY",  type="primary",    use_container_width=True)
 sell_btn = col_sell.button("SELL", type="secondary", use_container_width=True)
 
-if (buy_btn or sell_btn) and trade_sym:
+if (buy_btn or sell_btn) and not trade_sym:
+    alert("Enter a ticker symbol above before placing an order.", "warn")
+elif buy_btn or sell_btn:
     side = "BUY" if buy_btn else "SELL"
     key  = f"{side.lower()}_confirm"
     st.session_state[key] = {"symbol": trade_sym, "qty": trade_qty, "side": side}
