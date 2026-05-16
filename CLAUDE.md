@@ -21,6 +21,14 @@ alpaca-trading/
 │   ├── wheel.py                 # Level 3b: sell puts + covered calls, monitor loop
 │   └── auto_scanner.py          # /auto: multi-signal stock + options scanner
 │
+├── pages/                       # Streamlit multi-page dashboard
+│   ├── _shared.py               # Design system: CSS, metric_card, badge, alert, chart helpers
+│   ├── 1_Scanner.py             # Auto scanner with candidate cards and score bar chart
+│   ├── 2_Trade.py               # Manual buy/sell with live price chart
+│   ├── 3_Copy_Trading.py        # Congressional disclosures + politician leaderboard
+│   ├── 4_Wheel.py               # Wheel setup + open legs with DTE progress bars
+│   └── 5_History.py             # Trade history + cumulative P&L charts
+│
 ├── .claude/commands/            # Slash commands — Claude Code does the reasoning here
 │   ├── level1.md                # /level1 — account & manual trades
 │   ├── level2.md                # /level2 — Claude monitors trailing stop, reasons every tick
@@ -28,6 +36,10 @@ alpaca-trading/
 │   ├── schedule.md              # /schedule — create Windows Task Scheduler entries
 │   └── auto.md                  # /auto — autonomous 30-min scan + trade bot
 │
+├── .streamlit/
+│   └── config.toml              # Dark theme: #0E1117 bg, #2196F3 primary, #E8ECF0 text
+│
+├── app.py                       # Streamlit entry point — Dashboard (equity, positions, P&L)
 ├── db.py                        # SQLite helpers (copy trading dedup + wheel + auto trade log)
 ├── .env                         # Credentials (gitignored)
 ├── .env.example                 # Template for sharing
@@ -49,6 +61,9 @@ alpaca-trading/
 | `strategies/copy_trading.py` | Level 3a execution — `/level3` picks the politician |
 | `strategies/wheel.py` | Level 3b execution — `/level3` picks strike/expiry and monitors |
 | `strategies/auto_scanner.py` | `/auto` execution — scores stocks (RSI, momentum, volume, copy signals, fundamentals) and scans options (OI, spread, DTE) |
+| `pages/_shared.py` | Shared design system — CSS injection, `metric_card()`, `badge()`, `alert()`, color palette |
+| `app.py` | Streamlit Dashboard — equity, cash, positions table, portfolio donut chart, open orders |
+| `.streamlit/config.toml` | Streamlit dark theme configuration |
 
 ## Running Commands
 
@@ -95,6 +110,28 @@ uv run python strategies/auto_scanner.py --full --universe AAPL,MSFT,TQQQ
 
 No Anthropic API key needed — Claude Code uses your subscription.
 
+## Streamlit Dashboard
+
+Start the point-and-click dashboard (no terminal skills required):
+
+```bash
+uv run streamlit run app.py
+```
+
+Open **http://localhost:8501** in your browser.
+
+| Page | What it does |
+|------|-------------|
+| Dashboard | Equity, cash, buying power, day P&L — portfolio donut chart |
+| Scanner | Run multi-signal scan, view candidate cards + score bar chart, approve trades |
+| Trade | Manual buy/sell with live Plotly price chart, open orders management |
+| Copy Trading | Congressional disclosures, politician leaderboard chart, one-off mirror trades |
+| Wheel | Set up puts/calls with DTE progress bars, preview contract bid/ask/OI |
+| History | Cumulative P&L charts, full auto bot and wheel leg history |
+
+The Streamlit app is a **control panel and dashboard** — it does not replace Claude Code's AI layer.
+Adaptive monitoring loops (`/level2`, `/auto`) still run through Claude Code.
+
 ## Dependencies
 
 Managed by uv. Key packages:
@@ -104,6 +141,8 @@ Managed by uv. Key packages:
 | `alpaca-py` | Official Alpaca SDK for trading and market data |
 | `python-dotenv` | Load `.env` into environment variables |
 | `requests` | HTTP calls for options API, FMP API, and Quiver Quantitative |
+| `streamlit` | Web dashboard framework |
+| `plotly` | Interactive charts (donut, line, bar) used in the dashboard |
 
 ## Architecture
 

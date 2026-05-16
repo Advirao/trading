@@ -32,12 +32,15 @@ Then open **http://localhost:8501** in your browser.
 
 | Page | What it does |
 |---|---|
-| Dashboard | Account balance, positions, day P&L, open orders |
-| Scanner | Run the multi-signal scan, approve trades with checkboxes |
-| Trade | Manual buy/sell with live price chart, cancel orders |
-| Copy Trading | Browse congressional disclosures, mirror a trade |
-| Wheel | Set up cash-secured puts and covered calls |
-| History | Full trade history from the database |
+| Dashboard | Equity, cash, buying power, day P&L — portfolio donut chart + open positions/orders |
+| Scanner | Run the multi-signal scan — candidate cards with score bars, DTE bars, approve trades |
+| Trade | Manual buy/sell with live Plotly price chart, bid/ask metric cards, cancel orders |
+| Copy Trading | Congressional disclosures, most-active politician bar chart, one-off mirror trades |
+| Wheel | Set up puts/calls with DTE progress bars, preview contract bid/ask/OI before selling |
+| History | Cumulative P&L/premium charts, full auto bot and wheel leg history |
+
+The dashboard uses a shared dark-theme design system (`pages/_shared.py`) with metric cards,
+badge components, Plotly charts, and styled alert boxes across all pages.
 
 > The dashboard complements Claude Code — it handles viewing and one-off trades.
 > Continuous monitoring loops (`/level2`, `/auto`) still run through Claude Code.
@@ -386,6 +389,14 @@ alpaca-trading/
 │   ├── wheel.py             # Level 3b: sell puts + covered calls, monitor loop
 │   └── auto_scanner.py      # /auto: multi-signal stock + options scanner
 │
+├── pages/                   # Streamlit multi-page dashboard
+│   ├── _shared.py           # Design system: CSS, metric_card, badge, alert, Plotly helpers
+│   ├── 1_Scanner.py         # Score bar chart, candidate cards, options DTE bars
+│   ├── 2_Trade.py           # Live price chart, bid/ask cards, order management
+│   ├── 3_Copy_Trading.py    # Politician leaderboard chart, disclosure table, mirror trades
+│   ├── 4_Wheel.py           # Open legs with DTE bars, contract preview, sell form
+│   └── 5_History.py         # Cumulative P&L charts, auto bot + wheel history
+│
 ├── .claude/commands/        # Claude Code slash commands
 │   ├── level1.md            # /level1 — account & manual trades
 │   ├── level2.md            # /level2 — trailing stop bot (Claude monitors)
@@ -393,6 +404,10 @@ alpaca-trading/
 │   ├── schedule.md          # /schedule — Windows Task Scheduler setup
 │   └── auto.md              # /auto — autonomous 30-min scan + trade bot
 │
+├── .streamlit/
+│   └── config.toml          # Dark theme: #0E1117 bg, #2196F3 primary
+│
+├── app.py                   # Streamlit entry point — Dashboard page
 ├── db.py                    # SQLite helpers (copy trading, wheel, auto trade log)
 ├── .env                     # Your credentials (gitignored — never committed)
 ├── .env.example             # Template — fill in and rename to .env
